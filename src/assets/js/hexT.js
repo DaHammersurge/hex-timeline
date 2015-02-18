@@ -1,4 +1,13 @@
 //hex-timeline
+/*
+ *   _____      _     _ 
+ *  / ____|    (_)   | |
+ * | |  __ _ __ _  __| |
+ * | | |_ | '__| |/ _` |
+ * | |__| | |  | | (_| |
+ *  \_____|_|  |_|\__,_|
+ */
+                      
 
 function Grid(gridWidth,gridHeight,TileSize,regioncount) { 
     /**
@@ -213,8 +222,16 @@ Tile.prototype.getOccupied      = function() { return this.occupied; };
 Tile.prototype.getRegion        = function() { return this.region;};
 
 
-
-
+/* 
+ *  _    _ _     _                                  
+ * | |  | (_)   | |                                 
+ * | |__| |_ ___| |_ ___   __ _ _ __ __ _ _ __ ___  
+ * |  __  | / __| __/ _ \ / _` | '__/ _` | '_ ` _ \ 
+ * | |  | | \__ \ || (_) | (_| | | | (_| | | | | | |
+ * |_|  |_|_|___/\__\___/ \__, |_|  \__,_|_| |_| |_|
+ *                         __/ |                    
+ *                        |___/ 
+ */                    
 function Histogram() {
     this.grid;
 	this.gamestate   = 0; 
