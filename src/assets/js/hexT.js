@@ -204,7 +204,6 @@ Tile.prototype.setFillStyle     = function(newFill)  { this.fillStyle   = newFil
 Tile.prototype.setStrokeStyle   = function(newStroke){ this.strokeStyle = newStroke;};
 Tile.prototype.setLineWidth     = function(newWidth) { this.lineWidth   = newWidth;};
 Tile.prototype.setOccupied      = function(newOccupied) {this.occupied = newOccupied; };
-Tile.prototype.setRegion        = function(newRegionid) {this.region = newRegionid;};
 Tile.prototype.setDisplay       = function(newDisplay) { this.display = newDisplay; };
 
 /* 
@@ -219,7 +218,6 @@ Tile.prototype.getfillStyle     = function() { return this.fillStyle;};
 Tile.prototype.getstrokeStyle   = function() { return this.strokeStyle;};
 Tile.prototype.getlineWidth     = function() { return this.lineWidth;};
 Tile.prototype.getOccupied      = function() { return this.occupied; };
-Tile.prototype.getRegion        = function() { return this.region;};
 
 
 /* 
@@ -234,13 +232,10 @@ Tile.prototype.getRegion        = function() { return this.region;};
  */                    
 function Histogram() {
     this.grid;
-	this.gamestate   = 0; 
-	this.players     = [];
     this.gridheight   = 600;
     this.gridwidth    = 600;
     this.tilesizeparam = 27;
     this.tilesize    = Math.sqrt((this.gridwidth^2)+(this.gridheight^2))/(this.tilesizeparam/5)
-    this.playerCount = 5;
 }
 
 Histogram.prototype = {
@@ -252,5 +247,31 @@ Histogram.prototype = {
     }
 }
 
+function Data() {
+	this.url = "https://api.github.com/users/beaubouchard";
+	this.time= "52"; // how many weeks you want to see back in time
+	this.eventStack = []; 
+}
+Data.prototype = {
+	fetch: function() {
+		
+	}, 
+	parse: function() {
+	//	we are aiming to find the information located inside of "created_at"
+		
+	}
+}
+
+//https://api.github.com/users/BeauBouchard/events
+//an event is something that happens which is worth noting, for this program its going to be a commit
+//generic sounding function names is hard :P
+function Event(){
+	// 
+}
+
+
 var histo = new Histogram();
 histo.initialize();
+
+
+
