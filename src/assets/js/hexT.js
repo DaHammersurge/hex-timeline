@@ -267,6 +267,11 @@ Data.prototype = {
 //generic sounding function names is hard :P
 function Event(){
 	// 
+	this.id; // commit id
+	this.created_at; //when the commit was submitted 
+	this.repo-name; //what is the name of the repo Example: "name": "BeauBouchard/hex-timeline"
+	this.repo-url; // wgat is the url of the repo example: "url": "https://api.github.com/repos/BeauBouchard/hex-timeline"
+	this.avatar-url;
 }
 
 
