@@ -46,6 +46,11 @@ function Grid(gridWidth,gridHeight,TileSize,regioncount) {
     }
 }
 Grid.prototype = { 
+	/*  generate
+     *  Description: Creates a linked list to objects, by running a  short loop to map out and tile hexagons, 
+     * 			assigning them each a column number and a row number. These will be the X/Y values I will use
+     *  		later to uniquely find each tile. 
+     */ 
     generate: function () {
         console.log("Grid.generate");
 		for(var Tileid = 0; Tileid<=((this.maxRows)*(this.maxColumns));Tileid++){
@@ -56,7 +61,7 @@ Grid.prototype = {
         }
     },
     /*  getNeighbor
-     *  Descriotion: Selects a neighbor from a Tile based on input direction
+     *  Description: Selects a neighbor from a Tile based on input direction
      *      @param Tile Tile - a Tile which to select neighbor from based on direction
      *      @param direction int - a number 0-5 selects which side to return Tile from
      *      @return Tile - returns the Tile selected
@@ -80,6 +85,12 @@ Grid.prototype = {
         } 
             return this.TileSet[newRow][ newCol];
     },
+    /*  checkOccupied
+     *  Description: Selects a neighbor from a Tile based on input direction
+     *      @param row int - a number which will be the row the tile is in
+     *      @param col int - a number which will be the column the tile is in
+     *      @return boolean - returns if the tile is occupied.
+     */ 
     checkOccupied: function (row,col) {
         return this.TileSet[row][col].getOccupied();
     }
@@ -115,14 +126,29 @@ Grid.prototype = {
 }
 
 Tile.prototype = {
+	/*  initialize
+     *  Description: this is the initialization constructor of a tile, for using the ID param
+     *      @param id int - the unique id of the tile
+     */ 
     initialize: function(id) {
         this.id         = id;
     },
+    /*  initialize
+     *  Description: this is the initialization constructor of a tile, for using the ID param 
+     * 		as well as intializing it at a set location.
+     *      @param id int - the unique id of the tile
+     *      @param centerX int - the unique id of the tile
+     *      @param centerY int - the center coordinate of the Y axis. 
+     */ 
     initialize: function(id,centerX,centerY)  {
         this.id         = id;
         this.x          = centerX;
         this.y          = centerY;
     },
+    /*  draw
+     *  Description: this will draw the current tile and mark as occupied,
+     *		 reset it if it is already occupied.
+     */ 
     draw: function() {
         if(this.display === true) {
             //clear Tile, then redraw
@@ -134,6 +160,8 @@ Tile.prototype = {
             var xmlns = "http://www.w3.org/2000/svg";
             var svgspace = document.getElementById("gamesvg");
             var polygon = document.createElementNS(xmlns,'polygon');
+
+            	// Settting Attributes of SVG polygon element
                 polygon.setAttributeNS(null, 'id', 'polygon'+this.id);
                 polygon.setAttributeNS(null, 'row', this.row);
                 polygon.setAttributeNS(null, 'column', this.column);
@@ -149,13 +177,11 @@ Tile.prototype = {
                 //Corner x and y, draws each side/cornerpoint
                 var cornX = this.x + this.size * Math.cos(angle);
                 var cornY = this.y + this.size * Math.sin(angle);
-                // if(checkneighbor) {
                 if( i == 0) {
                     pointString = " " + cornX + "," + cornY;
                 } else {
                     pointString += " " + cornX + "," + cornY;
                 }
-                // }
             }
             polygon.setAttributeNS(null, 'points', pointString);
              
@@ -165,9 +191,12 @@ Tile.prototype = {
                 this.polygon = gTile;
             svgspace.appendChild(gTile);
             this.display = true;
-
         }
     }, 
+    /*  clear
+     *  Description: this will clear it if it is already being displayed, otherwise it is left alone. this is used by draw
+     *		 
+     */ 
     clear: function() {
         if(this.display === true) {
             var svgspace = document.getElementById("gamesvg");
@@ -175,6 +204,10 @@ Tile.prototype = {
             this.display = false;
         }
     },
+    /*  reset
+     *  Description: resets the tile's attributes back to default, this is used by draw
+     *		 
+     */
     reset: function () {
         this.strokeStyle = "black";
         this.fillStyle = '#323232';
@@ -184,6 +217,11 @@ Tile.prototype = {
         this.clear();
         this.draw();
     }, 
+    /*
+     *	occupy
+     *  Description:
+     *      @param
+     */
     occupy: function (Tile) {
         this.setOccupied(true);
         this.Tile = Tile;
@@ -227,21 +265,22 @@ Tile.prototype.getOccupied      = function() { return this.occupied; };
  * |  __  | / __| __/ _ \ / _` | '__/ _` | '_ ` _ \ 
  * | |  | | \__ \ || (_) | (_| | | | (_| | | | | | |
  * |_|  |_|_|___/\__\___/ \__, |_|  \__,_|_| |_| |_|
- *                         __/ |                    
+ *                         __/ |                     
  *                        |___/ 
  */                    
 function Histogram() {
     this.grid;
-    this.gridheight   = 600;
-    this.gridwidth    = 600;
-    this.tilesizeparam = 27;
+    this.gridheight   	= 600;
+    this.gridWidth    	= 600;
+    this.tilesizeparam	= 27;
     this.tilesize    = Math.sqrt((this.gridwidth^2)+(this.gridheight^2))/(this.tilesizeparam/5)
 }
 
 Histogram.prototype = {
     initialize: function() {
     	console.log("Initializing Histogram");
-    	this.grid = new grid(this.gridwidth,this.gridheight,this.tilesize,this.tilesizeparam);
+    	console.log("tilesize:". this.tilesizeparam);
+    	this.grid = new Grid(this.gridwidth,this.gridheight,this.tilesize,this.tilesizeparam);
     	this.grid.generate();
     	//should initialize
     }
@@ -253,12 +292,32 @@ function Data() {
 	this.eventStack = []; 
 }
 Data.prototype = {
+	/*
+	 * fetch
+	 * Description: AJAX request to the github repo
+
+	 *	readyState properties
+	 *	0 UNSENT: open() uncalled
+	 *	1 OPENED: send() uncalled
+	 *	2 HEADERS_RECIEVED: headers and status are available after a send()
+	 *	3 LOADING: the responseText is still downloading
+	 *	4 DONE: Success!!
+	 */
 	fetch: function() {
-		
+		// Create a new request object
+		var request = new XMLHttpRequest(); // xmlhttp obj
+
+		request.onload = this.parse;
+		// Initialize a request
+		request.open('get', this.url);
+		// Send it
+		request.send();
+
 	}, 
 	parse: function() {
 	//	we are aiming to find the information located inside of "created_at"
-		
+		var responseObj = JSON.parse(this.responseText);
+  		console.log(responseObj.name + " has " + responseObj.public_repos + " public repositories!");
 	}
 }
 
