@@ -9,7 +9,7 @@
  */
                       
 
-function Grid(gridWidth,gridHeight,TileSize,regioncount) { 
+function Grid(gridWidth,gridHeight,tileSize,regioncount) { 
     /**
      * There are 6 neighbors for every Tile, the direction input is below:
      *      __
@@ -28,17 +28,22 @@ function Grid(gridWidth,gridHeight,TileSize,regioncount) {
     }
     this.gridWidth          = gridWidth;
     this.gridHeight         = gridHeight;
-    this.Tilesize           = Tilesize;
+    this.Tilesize           = tileSize;
     this.TileWidth          = this.Tilesize * 2;
     this.TileHeight         = Math.sqrt(3)/2 * this.TileWidth; 
+    console.log("this.TileWidth " + this.TileWidth  );
+    console.log("this.TileHeight " + this.TileHeight);
     this.verticalSpacing    = this.TileHeight;
     this.horizontalSpacing  = 3/4 * this.TileWidth;
     this.maxRows            = Math.floor((this.gridHeight / this.verticalSpacing)) - 1;
     this.maxColumns         = Math.floor((this.gridWidth / this.horizontalSpacing)) - 1;
+    console.log("this.maxRows " + this.maxRows );
+    console.log("this.maxColumns " + this.maxColumns);
     this.TileSet            = new Array(this.maxRows);
     this.regionSet          = new Array();
     var row, column;
     for (row = 0; row < this.maxRows; row++) {
+    	console.log(this.maxColumns);
         this.TileSet[row] = new Array(this.maxColumns);
         for (column = 0; column < this.maxColumns; column++) {
             this.TileSet[row][column] = new Tile(this.Tilesize, row, column);
@@ -93,7 +98,42 @@ Grid.prototype = {
      */ 
     checkOccupied: function (row,col) {
         return this.TileSet[row][col].getOccupied();
-    }
+    },
+    /*  setTileColor
+     *  Description: sets the tile's color to the supplied param
+     * 		@param color string - a hex color
+     *      @param row int - a number which will be the row the tile is in
+     *      @param col int - a number which will be the column the tile is in
+     *      @return boolean - returns false if there was a problem.
+     */ 
+     setTileColor: function (row,col,color) {
+     	this.TileSet[row][col].setFillStyle(color);
+     	this.TileSet[row][col].draw();
+     },
+    /*  disable
+     *  Description: disables a tile, meaning it will not even show up.
+     *      @param row int - a number which will be the row the tile is in
+     *      @param col int - a number which will be the column the tile is in
+     */ 
+     disable: function(row,col) {
+		this.TileSet[row][col].clear();
+     },
+     getTile: function(row,col) {
+     	return this.TileSet[row][col];
+     },
+     addText: function(x,y,text) {
+     			//setting up left lettering
+     			var xmlns = 'http://www.w3.org/2000/svg';
+		var newText = document.createElementNS(xmlns,"text");
+			newText.setAttributeNS(null,"x",x);     
+			newText.setAttributeNS(null,"y",y); 
+			newText.setAttributeNS(null,"font-size","8");
+
+		var textNode = document.createTextNode(text);
+		newText.appendChild(textNode);
+		var svgspace = document.getElementById('hextimeline');
+		svgspace.appendChild(newText);
+     }
 }
 
 /*
@@ -119,8 +159,8 @@ Grid.prototype = {
     this.centerY        = 0;
     this.lineWidth      = 1;
     this.tag            = '';
-    this.strokeStyle    = "black";
-    this.fillStyle      = '#383A3D';
+    this.strokeStyle    = '#323232';
+    this.fillStyle      = '#EEEEEE'; //383A3D
     this.region;
     this.polygon;
 }
@@ -157,8 +197,8 @@ Tile.prototype = {
             this.draw();
         } else {
 
-            var xmlns = "http://www.w3.org/2000/svg";
-            var svgspace = document.getElementById("gamesvg");
+            var xmlns = 'http://www.w3.org/2000/svg';
+            var svgspace = document.getElementById('hextimeline');
             var polygon = document.createElementNS(xmlns,'polygon');
 
             	// Settting Attributes of SVG polygon element
@@ -170,7 +210,7 @@ Tile.prototype = {
                 polygon.setAttributeNS(null, 'stroke',this.strokeStyle);
                 polygon.setAttributeNS(null, 'opacity', 1); 
             
-            var pointString = "";
+            var pointString = '';
             //draws the element based on how many sides
             for( var i = 0; i <= this.nSides; i++) {
                 var angle = 2 * Math.PI / this.nSides * i;
@@ -209,8 +249,8 @@ Tile.prototype = {
      *		 
      */
     reset: function () {
-        this.strokeStyle = "black";
-        this.fillStyle = '#323232';
+        this.strokeStyle = '#323232';
+        this.fillStyle = '#eeeeee';
         this.lineWidth = 1;
         this.occupied = false;
         this.Tile = false;
@@ -219,13 +259,18 @@ Tile.prototype = {
     }, 
     /*
      *	occupy
-     *  Description:
-     *      @param
+     *  Description: Sets a tile to being occupied
+     *      @param tile Tile - Incoming tile to set occupy to TRUE.
      */
-    occupy: function (Tile) {
+    occupy: function (tile) {
         this.setOccupied(true);
-        this.Tile = Tile;
+        this.tile = tile;
     },
+    /*
+     *	toString
+     *  Description: returns the row and column of the tile
+     *      @return String - the row and column seperated by a comma
+     */
     toString: function() {
         return this.row + ', ' + this.column;
     }
@@ -266,30 +311,83 @@ Tile.prototype.getOccupied      = function() { return this.occupied; };
  * | |  | | \__ \ || (_) | (_| | | | (_| | | | | | |
  * |_|  |_|_|___/\__\___/ \__, |_|  \__,_|_| |_| |_|
  *                         __/ |                     
- *                        |___/ 
+ *                        |___/ +
+ *   Description: Currently the histogram will fill up the entire available space with tiles
+ *		With the size of 9 (tile size is roughly double that, 18px 18*7=126px), and the height of
+ *  	our space is about 128. 
+ *
+ *		gray = "#eeeeee";
+ *		paleGreen="#d6e685";
+ *		lightGreen="#8cc665";
+ *		green="#44a340";
+ *		darkGreen="#1e6823";
+ *
  */                    
 function Histogram() {
-    this.grid;
-    this.gridheight   	= 600;
-    this.gridWidth    	= 600;
-    this.tilesizeparam	= 27;
-    this.tilesize    = Math.sqrt((this.gridwidth^2)+(this.gridheight^2))/(this.tilesizeparam/5)
+    
+    this.gridHeight   	= 128;
+    this.gridWidth    	= 720;
+    this.tilesizeparam	= 32;
+    this.tilesize    = 9;//Math.sqrt((this.gridwidth^2)+(this.gridheight^2))/(this.tilesizeparam/5);
+    this.dataB;
+    console.log("tilesize:"+ this.tilesizeparam);
+    this.grid = new Grid(this.gridWidth ,this.gridHeight,this.tilesize,this.tilesizeparam);
+    //(gridWidth,gridHeight,tileSize,regioncount) 
+    this.grid.generate();
+    //should initialize
+
+
 }
 
 Histogram.prototype = {
     initialize: function() {
-    	console.log("Initializing Histogram");
-    	console.log("tilesize:". this.tilesizeparam);
-    	this.grid = new Grid(this.gridwidth,this.gridheight,this.tilesize,this.tilesizeparam);
-    	this.grid.generate();
-    	//should initialize
+		console.log("Initializing Histogram");
+
+		//set first and last day of the year. 
+		var currentTime = new Date();
+		var startd = Math.abs(currentTime.getDay()-7);
+		for(var i = 0; i<= startd; i++){this.grid.disable(i,0);}
+
+		//setup the last days of the year
+		for(var i = currentTime.getDay(); i<= 6; i++){this.grid.disable(i,51);}
+		this.dataB = new Data();
+
+		var x = this.grid.getTile(1,0).getX();
+		var y = this.grid.getTile(1,0).getY();
+		this.grid.addText(x-4,y+4,"M");
+
+		 x = this.grid.getTile(3,0).getX();
+		 y = this.grid.getTile(3,0).getY();
+		this.grid.addText(x-4,y+4,"W");
+
+		 x = this.grid.getTile(5,0).getX();
+		 y = this.grid.getTile(5,0).getY();
+		this.grid.addText(x-4,y+4,"F");
+
+		x = this.grid.getTile(1,1).getX();
+		y = this.grid.getTile(1,1).getY();
+		this.grid.addText(x-4,y+4,"M");
+
+		 x = this.grid.getTile(3,1).getX();
+		 y = this.grid.getTile(3,1).getY();
+		this.grid.addText(x-4,y+4,"W");
+
+		 x = this.grid.getTile(5,1).getX();
+		 y = this.grid.getTile(5,1).getY();
+		this.grid.addText(x-4,y+4,"F");
+
+		this.dataB.fetch();
     }
+
+
+
 }
 
 function Data() {
-	this.url = "https://api.github.com/users/beaubouchard";
+	this.url = "https://api.github.com/users/beaubouchard/events";
 	this.time= "52"; // how many weeks you want to see back in time
 	this.eventStack = []; 
+	this.responseText = "";
 }
 Data.prototype = {
 	/*
@@ -317,7 +415,12 @@ Data.prototype = {
 	parse: function() {
 	//	we are aiming to find the information located inside of "created_at"
 		var responseObj = JSON.parse(this.responseText);
-  		console.log(responseObj.name + " has " + responseObj.public_repos + " public repositories!");
+		responseObj.forEach(function(object) {
+  			console.log(object.message + "  created_at:" + object.created_at + " !");
+  		});
+  		//YYYY-MM-DDTHH:MM:SSZ
+  		//2015-02-20T04:58:19Z
+  		// this will be UTM time, so you are going to need to convert it, or just groove on it
 	}
 }
 
