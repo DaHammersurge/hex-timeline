@@ -1,4 +1,28 @@
-//hex-timeline
+/*
+ * 
+ * @title: Hex Timelime
+ * @author: Beau Bouchard ( @beaubouchard )
+ * @description: This script will create a hex tile svg rendering of the github commit calendar.
+ * @repo http://www.github.com/beaubouchard/hex-timeline/
+ *
+ */
+
+
+
+    /*  Date.getWeekNumber
+     *  Description:  
+     *		@return {int} calculates and returns the week number of date object
+     */ 
+Date.prototype.getWeekNumber = function(){
+    var d = new Date(+this);// Copy date so don't modify original
+    d.setHours(0,0,0);
+    d.setDate(d.getDate()+4-(d.getDay()||7)); // Set to nearest Thursday: current date + 4 - current day number, Make Sunday's day number 7
+    return Math.ceil((((d-new Date(d.getFullYear(),0,1))/8.64e7)+1)/7); // Get first day of year
+};
+
+
+
+
 /*
  *   _____      _     _ 
  *  / ____|    (_)   | |
@@ -7,7 +31,11 @@
  * | |__| | |  | | (_| |
  *  \_____|_|  |_|\__,_|
  */
-                      
+     /* 
+      * Grid
+      * 	description: the grid object hold the array of tiles which will be placed on the svg tag. 
+      *
+      */                 
 
 function Grid(gridWidth,gridHeight,tileSize,regioncount) { 
     /**
@@ -312,6 +340,9 @@ Tile.prototype.getOccupied      = function() { return this.occupied; };
  * |_|  |_|_|___/\__\___/ \__, |_|  \__,_|_| |_| |_|
  *                         __/ |                     
  *                        |___/ +
+ */
+/*
+ * Histogram
  *   Description: Currently the histogram will fill up the entire available space with tiles
  *		With the size of 9 (tile size is roughly double that, 18px 18*7=126px), and the height of
  *  	our space is about 128. 
@@ -330,7 +361,8 @@ function Histogram() {
     this.tilesizeparam	= 32;
     this.tilesize    = 9;//Math.sqrt((this.gridwidth^2)+(this.gridheight^2))/(this.tilesizeparam/5);
     this.dataB;
-    console.log("tilesize:"+ this.tilesizeparam);
+    	this.countArray = new Array(365);
+    //console.log("tilesize:"+ this.tilesizeparam);
     this.grid = new Grid(this.gridWidth ,this.gridHeight,this.tilesize,this.tilesizeparam);
     //(gridWidth,gridHeight,tileSize,regioncount) 
     this.grid.generate();
@@ -343,6 +375,9 @@ Histogram.prototype = {
     initialize: function() {
 		console.log("Initializing Histogram");
 
+
+		this.drawLetters(1);
+
 		//set first and last day of the year. 
 		var currentTime = new Date();
 		var startd = Math.abs(currentTime.getDay()-7);
@@ -352,35 +387,72 @@ Histogram.prototype = {
 		for(var i = currentTime.getDay(); i<= 6; i++){this.grid.disable(i,51);}
 		this.dataB = new Data();
 
-		var x = this.grid.getTile(1,0).getX();
-		var y = this.grid.getTile(1,0).getY();
+		// connecting to github with a AJAX call
+		this.dataB.fetch(this);
+		//draw the data
+
+    },
+    /*
+     *	drawLetters
+     *  Description: Draws the letters of the week on the week provided.
+     *      @param week {int} - The integer value of the week, 0-51
+     */
+    drawLetters: function(week){
+
+    	// Draws M, W, F for Monday, Wednesday, Friday
+    	// Sunday is zero, the first day
+    	// Monday is the second day of the week,
+    	// Our weeks on this calendar are starting with sunday, ending with saturday
+		var x = this.grid.getTile(1,week).getX();
+		var y = this.grid.getTile(1,week).getY();
 		this.grid.addText(x-4,y+4,"M");
 
-		 x = this.grid.getTile(3,0).getX();
-		 y = this.grid.getTile(3,0).getY();
+		 x = this.grid.getTile(3,week).getX();
+		 y = this.grid.getTile(3,week).getY();
 		this.grid.addText(x-4,y+4,"W");
 
-		 x = this.grid.getTile(5,0).getX();
-		 y = this.grid.getTile(5,0).getY();
+		 x = this.grid.getTile(5,week).getX();
+		 y = this.grid.getTile(5,week).getY();
 		this.grid.addText(x-4,y+4,"F");
+    },
+    drawDay: function(date){
+    	var daynum 		= getDayofYear(date);
+    	var week 		= date.getWeekNumber();
+    	var day 		= date.getDay();
+		var gray 		= "#eeeeee";
+		var paleGreen	= "#d6e685";
+		var lightGreen	= "#8cc665";
+		var green 		= "#44a340";
+		var darkGreen 	= "#1e6823";
 
-		x = this.grid.getTile(1,1).getX();
-		y = this.grid.getTile(1,1).getY();
-		this.grid.addText(x-4,y+4,"M");
+		var max = Math.max.apply(Math, this.countArray);
 
-		 x = this.grid.getTile(3,1).getX();
-		 y = this.grid.getTile(3,1).getY();
-		this.grid.addText(x-4,y+4,"W");
+		if(this.countArray[daynum] == 0){
+			console.log("Histogram.drawDay() :: 0 ");
+			var color = gray;
+		} else if(this.countArray[daynum] > 1 && this.countArray[daynum] <= 2) {
+			var color = paleGreen;
+		} else if(this.countArray[daynum] > 2 && this.countArray[daynum] <= Math.floor(max/2) ){
+			var color = green;
+		}else if(this.countArray[daynum] > Math.floor(max/2) ){
+			var color = darkGreen;
+		}
+		console.log("Histogram.drawDay() ::  "+color);
+    	this.grid.setTileColor(day,week,color);//row,col,color
+    },
+	getCountArray: function() {
+		return this.countArray;
+	}, 
+    increaseDay: function(d){
+    	var date = new Date();
+    	date = d;
+    	var daynum = getDayofYear(date);
+    	var week = date.getWeekNumber();
+    	var day = date.getDay();
+    	this.countArray[daynum]++;
+    	//this.drawDay(date);
 
-		 x = this.grid.getTile(5,1).getX();
-		 y = this.grid.getTile(5,1).getY();
-		this.grid.addText(x-4,y+4,"F");
-
-		this.dataB.fetch();
     }
-
-
-
 }
 
 function Data() {
@@ -401,26 +473,55 @@ Data.prototype = {
 	 *	3 LOADING: the responseText is still downloading
 	 *	4 DONE: Success!!
 	 */
-	fetch: function() {
+	fetch: function(callback) {
 		// Create a new request object
 		var request = new XMLHttpRequest(); // xmlhttp obj
 
-		request.onload = this.parse;
-		// Initialize a request
-		request.open('get', this.url);
-		// Send it
-		request.send();
+		request.onreadystatechange = function() {
+		    if (request.readyState == 4) {
+		        //alert(request.responseText);
+		        		var responseObj = JSON.parse(this.responseText);
 
-	}, 
+				for (var key in responseObj) {
+				    if (responseObj.hasOwnProperty(key)) {
+				      var created_at = responseObj[key]["created_at"];
+				      //var date = Date.parse(created_at);
+				      var date = new Date(created_at);
+				      	callback.increaseDay(date);
+				      	callback.drawDay(date);
+				    }
+		  		}
+		    }
+		}
+		//request.onload = this.parse;
+		// Initialize a request
+		request.open('GET', this.url, true);
+		// Send it
+		request.send(null);
+
+	},
 	parse: function() {
 	//	we are aiming to find the information located inside of "created_at"
-		var responseObj = JSON.parse(this.responseText);
-		responseObj.forEach(function(object) {
-  			console.log(object.message + "  created_at:" + object.created_at + " !");
-  		});
+
+  				//var bull = new Date(object.created_at);
+
+  				//callback.increaseDay(date);
+  				//this.callback.increaseDay(date);
+  				//this.callback.drawDay(date);
+  				//var daynum = getDayofYear(date);
+		    	//var week = date.getWeekNumber();
+		    	//var day = date.getDay();
+		    	//this.countArray[daynum]++;
+		   
+		//responseObj.forEach(function(object) {
+  		//	console.log(object.message + "  created_at:" + object.created_at + " !");
+  		//});
   		//YYYY-MM-DDTHH:MM:SSZ
   		//2015-02-20T04:58:19Z
   		// this will be UTM time, so you are going to need to convert it, or just groove on it
+  		//.toLocaleTimeString()
+  		//.toLocaleDateString()
+  		//.toUTCString()
 	}
 }
 
@@ -434,6 +535,70 @@ function Event(){
 	this.repo-name; //what is the name of the repo Example: "name": "BeauBouchard/hex-timeline"
 	this.repo-url; // wgat is the url of the repo example: "url": "https://api.github.com/repos/BeauBouchard/hex-timeline"
 	this.avatar-url;
+}
+
+function getDayofYear(checkdate){
+	var now = new Date();
+	var start = new Date(now.getFullYear(), 0, 0);
+	var diff = checkdate - start;
+	var oneDay = 1000 * 60 * 60 * 24;
+	var day = Math.floor(diff / oneDay);
+	return day;
+}
+
+
+
+    /*  LinkedList
+     *  Description:  single linked list implimentation 
+     */ 
+function LinkedList() {
+	this.head = null;
+}
+
+LinkedList.prototype = {
+	/*  LinkedList.add(value)
+     *  Description:  adds a node to the list of value, then points/links it in list
+     * 		@param - a value to add to the linked list
+     * 		@return node - returns the next node in the list
+     */ 
+	add: function(value) {
+		var node = {
+			value: value,
+			next: null };
+		var current;
+		if(this.head === null){
+			this.head = node;
+		} else {
+			current = this.head;
+			while(current.next) {
+				current = current.next;
+			}
+			current.next = node;
+		}
+		return node;
+	},
+	/*  LinkedList.remove(node)
+     *  Description:  removes node from list, and then sets the current to point/link to the next node in linked list
+     * 		@param node- a node to remove from the list
+     * 		@return value - the value of the node removed from the list
+     */ 
+	remove: function(node) {
+		var current;
+		var value = node.value;
+		if(this.head !== null) {
+			this.head = this.head.next;
+			node.next = null;
+			return value;
+		}
+		current = this.head;
+		while(current.next) {
+			if(current.next === node) {
+				current.next = node.next;
+				return value;
+			}
+			current = current.next;
+		}
+	}
 }
 
 
