@@ -10,7 +10,7 @@
 
 
     /*  Date.getWeekNumber
-     *  Description:  
+     *  Description:  this is used to get the week number, ie the first week of hte year is 1, the last week is 52
      *		@return {int} calculates and returns the week number of date object
      */ 
 Date.prototype.getWeekNumber = function(){
@@ -146,6 +146,12 @@ Grid.prototype = {
      disable: function(row,col) {
 		this.TileSet[row][col].clear();
      },
+    /*  getTile
+     *  Description: returns the tile at row and col
+     *      @param row int - a number which will be the row the tile is in
+     *      @param col int - a number which will be the column the tile is in
+     *      @return Tile - returns a tile selected with x , y OR row , col
+     */ 
      getTile: function(row,col) {
      	return this.TileSet[row][col];
      },
