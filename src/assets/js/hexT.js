@@ -7,8 +7,6 @@
  *
  */
 
-
-
     /*  Date.getWeekNumber
      *  Description:  this is used to get the week number, ie the first week of hte year is 1, the last week is 52
      *		@return {int} calculates and returns the week number of date object
@@ -20,34 +18,21 @@ Date.prototype.getWeekNumber = function(){
     return Math.ceil((((d-new Date(d.getFullYear(),0,1))/8.64e7)+1)/7); // Get first day of year
 };
 
-
-
-
-/*
- *   _____      _     _ 
- *  / ____|    (_)   | |
- * | |  __ _ __ _  __| |
- * | | |_ | '__| |/ _` |
- * | |__| | |  | | (_| |
- *  \_____|_|  |_|\__,_|
- */
-     /* 
-      * Grid
-      * 	description: the grid object hold the array of tiles which will be placed on the svg tag. 
-      *
-      */                 
-
-function Grid(gridWidth,gridHeight,tileSize,regioncount) { 
-    /**
-     * There are 6 neighbors for every Tile, the direction input is below:
-     *      __
-     *   __/  \__
-     *  /  \_3/  \
-     *  \_2/  \4_/
-     *  / 1\__/5 \
-     *  \__/0 \__/
-     *     \__/
-     */
+	/*
+	* Grid
+	* 	description: the grid object hold the array of tiles which will be placed on the svg tag. 
+	*/                 
+function Grid(gridWidth,gridHeight,tileSize) { 
+		/**
+		 * There are 6 neighbors for every Tile, the direction input is below:
+		 *      __
+		 *   __/  \__
+		 *  /  \_3/  \
+		 *  \_2/  \4_/
+		 *  / 1\__/5 \
+		 *  \__/0 \__/
+		 *     \__/
+		 */
     this.nDelta = {
         even: [ [1,  0], [ 0, -1], [-1, -1],
                 [-1,  0], [-1, 1], [ 0, 1] ],
